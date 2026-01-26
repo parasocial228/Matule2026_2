@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".creat_project"
+    android:background="@color/white">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textView23"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Создать проект"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Тип"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+            <include
+                android:id="@+id/typeSelectInclude"
+                layout="@layout/select"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Название проекта"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+
+            <include
+                android:id="@+id/nameInputInclude"
+                layout="@layout/input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/date_start"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Дата начала"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+
+            <include
+                android:id="@+id/dateStartInclude"
+                layout="@layout/input_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/date_end"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Дата окончания"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+            <include
+                android:id="@+id/dateEndInclude"
+                layout="@layout/input_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/for_why"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Кому"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+            <include
+                android:id="@+id/whomSelectInclude"
+                layout="@layout/select"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/source"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Источник описания"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+            <include
+                android:id="@+id/sourceInputInclude"
+                layout="@layout/input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/kategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Категория"
+                android:layout_marginTop="20dp"
+                android:textColor="@color/description"/>
+
+            <include
+                android:id="@+id/categorySelectInclude"
+                layout="@layout/select"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"/>
+
+            <ImageView
+                android:id="@+id/foto"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                app:srcCompat="@drawable/foto" />
+
+            <Button
+                android:id="@+id/Podtverd"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/blue_background"
+                android:padding="10dp"
+                android:textSize="17dp"
+                android:textAllCaps="false"
+                android:text="Подтвердить"
+                android:textColor="@color/white"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="80dp"/>
+        </LinearLayout>
+
+    </ScrollView>
+
+    <include
+        layout="@layout/tabbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
