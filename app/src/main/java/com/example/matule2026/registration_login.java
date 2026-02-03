@@ -1,6 +1,7 @@
 package com.example.matule2026;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.Editable;
@@ -31,7 +32,7 @@ public class registration_login extends AppCompatActivity {
     private PopupWindow errorPopup;
     private boolean isPasswordVisible = false;
     private boolean isFormValid = false;
-
+    private SharedPreferencesHelper prefsHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +43,8 @@ public class registration_login extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        prefsHelper = new SharedPreferencesHelper(this);
+
         this.initViews();
         this.setupPasswordVisibilityToggle();
         this.setupTextWatchers();
@@ -65,14 +68,27 @@ public class registration_login extends AppCompatActivity {
                         String email = registration_login.this.emailEditText.getText().toString().trim();
                         String password = registration_login.this.passwordEditText.getText().toString().trim();
 
-                        // Всегда проверяем валидность при клике
                         boolean emailValid = registration_login.this.isValidEmail(email);
                         boolean passwordValid = !TextUtils.isEmpty(password);
 
                         if (emailValid && passwordValid) {
+                            // Сохраняем данные в SharedPreferencesHelper
+                            prefsHelper.setFirstLaunchComplete();
+                            prefsHelper.setUserRegistered(true);
+                            prefsHelper.setRegistrationSkipped(false);
+                            prefsHelper.saveUserEmail(email);
+
+                            // Сохраняем в user_data для обратной совместимости
+                            SharedPreferences userPrefs = getSharedPreferences("user_data", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = userPrefs.edit();
+                            editor.putString("user_email", email);
+                            editor.putString("user_password", password);
+                            editor.apply();
+
                             Intent intent = new Intent(registration_login.this, profile.class);
                             intent.putExtra("email", email);
                             registration_login.this.startActivity(intent);
+                            registration_login.this.finish();
                         } else {
                             registration_login.this.showErrorMessage(email, password);
                         }
@@ -312,12 +328,20 @@ public class registration_login extends AppCompatActivity {
     }
 
     public void openCreatProfile(View view) {
+        prefsHelper.setFirstLaunchComplete();
+        prefsHelper.setRegistrationSkipped(false);
+
         Intent i = new Intent(this, profile_create.class);
         this.startActivity(i);
         this.finish();
     }
 
     public void skip(View view) {
+        prefsHelper.setFirstLaunchComplete();
+        prefsHelper.setUserRegistered(true);
+        prefsHelper.setRegistrationSkipped(true);
+        prefsHelper.setHasProfile(true);
+
         Intent i = new Intent(this, profile.class);
         this.startActivity(i);
         this.finish();

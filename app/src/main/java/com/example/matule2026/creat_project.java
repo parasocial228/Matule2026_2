@@ -132,6 +132,8 @@ public class creat_project extends AppCompatActivity {
 
         // Изначально кнопка неактивна
         updateButtonState();
+
+//        updateButtonConfirmState();
     }
 
     private void initializeViews() {
@@ -386,6 +388,9 @@ public class creat_project extends AppCompatActivity {
 
     private void setupConfirmButton() {
         if (buttonConfirm != null) {
+            // Устанавливаем начальный цвет - неактивный
+            updateButtonConfirmState(false);
+
             buttonConfirm.setOnClickListener(v -> {
                 if (!areAllFieldsFilled()) {
                     showErrorMessage();
@@ -393,9 +398,6 @@ public class creat_project extends AppCompatActivity {
                     saveProjectData();
                 }
             });
-
-            // Изначально делаем кнопку неактивной
-            buttonConfirm.setAlpha(0.7f);
         }
     }
 
@@ -421,16 +423,8 @@ public class creat_project extends AppCompatActivity {
 
         boolean allFilled = areAllFieldsFilled();
 
-        if (allFilled) {
-            // Делаем кнопку активной
-            buttonConfirm.setAlpha(1.0f);
-        } else {
-            // Делаем кнопку неактивной
-            buttonConfirm.setAlpha(0.7f);
-        }
-
-        // Кнопка всегда кликабельна
-        buttonConfirm.setEnabled(true);
+        // Обновляем состояние кнопки с использованием цветов
+        updateButtonConfirmState(allFilled);
     }
 
     private void showErrorMessage() {
@@ -515,7 +509,23 @@ public class creat_project extends AppCompatActivity {
 
         return error.toString().isEmpty() ? "Заполните все обязательные поля" : error.toString();
     }
+    private void updateButtonConfirmState(boolean isActive) {
+        if (buttonConfirm == null) return;
 
+        if (isActive) {
+            // Активное состояние - цвет accent
+            buttonConfirm.setBackgroundTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, com.example.ui_kit.R.color.accent)));
+            buttonConfirm.setEnabled(true);
+            buttonConfirm.setAlpha(1.0f);
+        } else {
+            // Неактивное состояние - цвет accent_inactive
+            buttonConfirm.setBackgroundTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, com.example.ui_kit.R.color.accent_inactive)));
+            buttonConfirm.setEnabled(true); // или false, если нужно отключить клики
+            buttonConfirm.setAlpha(1.0f); // убираем полупрозрачность
+        }
+    }
     private void saveProjectData() {
         String projectType = getSelectedSpinnerValue(spinnerType);
         String projectName = editTextName != null ? editTextName.getText().toString().trim() : "";

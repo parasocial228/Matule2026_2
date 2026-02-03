@@ -143,6 +143,15 @@ public class catalog extends AppCompatActivity {
                     showModal();
                 }
             });
+            if (cart2Include != null) {
+                buttonAddRemove2 = cart2Include.findViewById(com.example.ui_kit.R.id.buttoncart);
+
+                // Устанавливаем текст для cart2 на "Шорты вторник для машинного вязания"
+                TextView nameProduct2 = cart2Include.findViewById(com.example.ui_kit.R.id.nameProduct);
+                if (nameProduct2 != null) {
+                    nameProduct2.setText("Шорты вторник для машинного вязания");
+                }
+            }
         }
 
         if (cart2Include != null) {
@@ -337,11 +346,14 @@ public class catalog extends AppCompatActivity {
         button.setSelected(false);
         // Если вы используете селектор, просто обновите текст
         button.setText("Добавить");
+        button.setBackgroundResource(com.example.ui_kit.R.drawable.blue_background);
+        button.setTextColor(ContextCompat.getColor(this, com.example.ui_kit.R.color.white));
     }
     private void updateButtonToRemove(Button button) {
         button.setSelected(true);
-        // Если вы используете селектор, просто обновите текст
+        button.setBackgroundResource(com.example.ui_kit.R.drawable.blue_border);
         button.setText("Убрать");
+        button.setTextColor(ContextCompat.getColor(this, com.example.ui_kit.R.color.accent));
     }
 
     private void updateModalButtonToAdd() {

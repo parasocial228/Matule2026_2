@@ -19,34 +19,25 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class creat_password_login extends AppCompatActivity {
+public class login extends AppCompatActivity {
     private ImageView progress1, progress2, progress3, progress4;
     private List<Button> numberButtons = new ArrayList<>();
-    private List<Integer> password = new ArrayList<>();
+    private List<Integer> enteredPin = new ArrayList<>();
     private Handler handler = new Handler();
-
-    // Переменные для хранения только имени и почты
-    private String userName;
-    private String userEmail;
-    private String userPasswordFromPrevious;
+    private SharedPreferencesHelper prefsHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_creat_password_login);
+        setContentView(R.layout.activity_login);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Получаем только имя и email из creat_password
-        Intent intent = getIntent();
-        userName = intent.getStringExtra("USER_NAME");
-        userEmail = intent.getStringExtra("USER_EMAIL");
-        userPasswordFromPrevious = intent.getStringExtra("USER_PASSWORD");
-
+        prefsHelper = new SharedPreferencesHelper(this);
         initializeViews();
         setupClickListeners();
         resetProgressCircles();
@@ -97,24 +88,75 @@ public class creat_password_login extends AppCompatActivity {
     }
 
     private void onNumberClicked(int number) {
-        if (password.size() < 4) {
-            password.add(number);
+        if (enteredPin.size() < 4) {
+            enteredPin.add(number);
             updateProgressCircles();
             updateButtonBackground(number, true);
 
             // Проверка пароля после ввода 4 цифр
-            if (password.size() == 4) {
-                savePasswordAndNavigate();
+            if (enteredPin.size() == 4) {
+                verifyPinCode();
             }
         }
     }
 
     private void onDeleteClicked() {
-        if (!password.isEmpty()) {
-            int lastNumber = password.remove(password.size() - 1);
+        if (!enteredPin.isEmpty()) {
+            int lastNumber = enteredPin.remove(enteredPin.size() - 1);
             updateProgressCircles();
             updateButtonBackground(lastNumber, false);
         }
+    }
+
+    private void verifyPinCode() {
+        String enteredPinStr = getEnteredPinAsString();
+        String savedPin = prefsHelper.getPinCode();
+
+        if (enteredPinStr.equals(savedPin)) {
+            // PIN верный - переходим в профиль
+            Toast.makeText(this, "Вход выполнен!", Toast.LENGTH_SHORT).show();
+
+            // Загружаем данные пользователя из SharedPreferences
+            SharedPreferences userPrefs = getSharedPreferences("user_data", MODE_PRIVATE);
+            String userName = userPrefs.getString("user_name", "");
+            String userEmail = userPrefs.getString("user_email", "");
+
+            // Сохраняем в SharedPreferencesHelper для быстрого доступа
+            if (!userEmail.isEmpty()) {
+                prefsHelper.saveUserEmail(userEmail);
+            }
+
+            Intent profileIntent = new Intent(login.this, profile.class);
+            profileIntent.putExtra("USER_NAME", userName);
+            profileIntent.putExtra("USER_EMAIL", userEmail);
+            startActivity(profileIntent);
+            finish();
+        } else {
+            // Неверный PIN
+            Toast.makeText(this, "Неверный PIN-код!", Toast.LENGTH_SHORT).show();
+            resetPinInput();
+        }
+    }
+
+    private void resetPinInput() {
+        enteredPin.clear();
+        resetProgressCircles();
+
+        // Небольшая задержка перед сбросом для лучшего UX
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Можно добавить вибрацию или анимацию ошибки
+            }
+        }, 200);
+    }
+
+    private String getEnteredPinAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (Integer num : enteredPin) {
+            sb.append(num);
+        }
+        return sb.toString();
     }
 
     private void updateProgressCircles() {
@@ -122,9 +164,8 @@ public class creat_password_login extends AppCompatActivity {
         resetProgressCircles();
 
         // Установка активного состояния для заполненных кружков
-        // Используем progress_blue для активного состояния и progress для неактивного
         try {
-            switch (password.size()) {
+            switch (enteredPin.size()) {
                 case 1:
                     progress1.setImageResource(com.example.ui_kit.R.drawable.progress_blue);
                     break;
@@ -162,7 +203,7 @@ public class creat_password_login extends AppCompatActivity {
         progress4.setColorFilter(inactiveColor, android.graphics.PorterDuff.Mode.SRC_IN);
 
         // Установка активного цвета
-        switch (password.size()) {
+        switch (enteredPin.size()) {
             case 1:
                 progress1.setColorFilter(activeColor, android.graphics.PorterDuff.Mode.SRC_IN);
                 break;
@@ -210,7 +251,7 @@ public class creat_password_login extends AppCompatActivity {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        button.setBackgroundTintList(ContextCompat.getColorStateList(creat_password_login.this, com.example.ui_kit.R.color.input_bg));
+                        button.setBackgroundTintList(ContextCompat.getColorStateList(login.this, com.example.ui_kit.R.color.input_bg));
                     }
                 }, 200);
             } else {
@@ -246,66 +287,10 @@ public class creat_password_login extends AppCompatActivity {
         }
     }
 
-    private void savePasswordAndNavigate() {
-        // Сохраняем PIN-код
-        String pinCode = getPasswordAsString();
-
-        // Сохраняем данные пользователя
-        saveUserData(pinCode);
-
-        // Сохраняем в SharedPreferencesHelper
-        SharedPreferencesHelper prefsHelper = new SharedPreferencesHelper(this);
-        prefsHelper.savePinCode(pinCode);
-        prefsHelper.setFullRegistrationComplete(true);
-        prefsHelper.setUserRegistered(true);
-        prefsHelper.setHasProfile(true);
-
-        // Переходим на профиль
-        Intent glavnIntent = new Intent(creat_password_login.this, profile.class);
-        glavnIntent.putExtra("USER_NAME", userName);
-        glavnIntent.putExtra("USER_EMAIL", userEmail);
-        startActivity(glavnIntent);
-
-        // Завершаем все предыдущие активности
-        finishAffinity();
-    }
-
-    private void saveUserData(String pinCode) {
-        SharedPreferences prefs = getSharedPreferences("user_data", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-
-        // Сохраняем только имя и email
-        editor.putString("user_name", userName);
-        editor.putString("user_email", userEmail);
-
-        // Сохраняем пароли
-        editor.putString("user_password", userPasswordFromPrevious);
-        editor.putString("user_pin", pinCode);
-
-        // Флаги состояния
-        editor.putBoolean("profile_created", true);
-        editor.putBoolean("password_set", true);
-        editor.putBoolean("pin_set", true);
-
-        editor.apply();
-
-        // Показываем сообщение об успешном сохранении
-        Toast.makeText(this, "Данные успешно сохранены!", Toast.LENGTH_SHORT).show();
-    }
-
-    private String getPasswordAsString() {
-        StringBuilder sb = new StringBuilder();
-        for (Integer num : password) {
-            sb.append(num);
-        }
-        return sb.toString();
-    }
-//    @Override
+ //   @Override
 //    public void onBackPressed() {
 //        // Предотвращаем возврат на предыдущую активность
-//        // Можно выйти из приложения или показать диалог
-//        moveTaskToBack(true); // Сворачивает приложение
-//        // Или:
-//        // super.onBackPressed(); // Разрешает стандартное поведение
+//        // Вместо этого выходим из приложения или остаемся на экране логина
+//        moveTaskToBack(true);
 //    }
 }

@@ -1,5 +1,6 @@
 package com.example.matule2026;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -19,14 +20,13 @@ import androidx.core.view.WindowInsetsCompat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
 
 public class project extends AppCompatActivity {
     private LinearLayout projectsContainer;
     private ImageView addProjectButton;
+    private SharedPreferencesHelper prefsHelper;
 
     // Ключи для SharedPreferences
-    private static final String PREFS_NAME = "MyProjectsPrefs";
     private static final String PROJECT_COUNT_KEY = "project_count";
 
     @Override
@@ -34,63 +34,74 @@ public class project extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_project);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        ImageView buttonGlavn = (ImageView)this.findViewById(com.example.ui_kit.R.id.button_glavn);
-        ImageView buttonCatalog = (ImageView)this.findViewById(com.example.ui_kit.R.id.button_catalog);
-        ImageView buttonProject = (ImageView)this.findViewById(com.example.ui_kit.R.id.button_project);
-        ImageView buttonProfile = (ImageView)this.findViewById(com.example.ui_kit.R.id.button_profile);
-        buttonGlavn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (!project.this.getClass().getSimpleName().equals("MainActivity")) {
-                    Intent intent = new Intent(project.this, glavn.class);
-                    project.this.startActivity(intent);
-                }
 
-            }
-        });
-        buttonCatalog.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (!project.this.getClass().getSimpleName().equals("CatalogActivity")) {
-                    Intent intent = new Intent(project.this, catalog.class);
-                    project.this.startActivity(intent);
-                }
+        // Инициализация хелпера
+        prefsHelper = new SharedPreferencesHelper(this);
 
-            }
-        });
-        buttonProject.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (!project.this.getClass().getSimpleName().equals("ProjectActivity")) {
-                    Intent intent = new Intent(project.this, project.class);
-                    project.this.startActivity(intent);
-                }
-
-            }
-        });
-        buttonProfile.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (!project.this.getClass().getSimpleName().equals("ProfileActivity")) {
-                    Intent intent = new Intent(project.this, profile.class);
-                    project.this.startActivity(intent);
-                }
-
-            }
-        });
+        // Настройка таббара
+        setupTabbar();
 
         initializeViews();
 
         // Настраиваем статическую карточку
         setupStaticCard();
 
-        // Загружаем сохраненные проекты
+        // Загружаем сохраненные проекты для текущего пользователя
         loadSavedProjects();
 
         // Проверяем, есть ли новый проект из creat_project
         checkForNewProjectFromIntent();
     }
+
+    private void setupTabbar() {
+        ImageView buttonGlavn = findViewById(com.example.ui_kit.R.id.button_glavn);
+        ImageView buttonCatalog = findViewById(com.example.ui_kit.R.id.button_catalog);
+        ImageView buttonProject = findViewById(com.example.ui_kit.R.id.button_project);
+        ImageView buttonProfile = findViewById(com.example.ui_kit.R.id.button_profile);
+
+        buttonGlavn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!project.this.getClass().getSimpleName().equals("MainActivity")) {
+                    Intent intent = new Intent(project.this, glavn.class);
+                    project.this.startActivity(intent);
+                }
+            }
+        });
+
+        buttonCatalog.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!project.this.getClass().getSimpleName().equals("CatalogActivity")) {
+                    Intent intent = new Intent(project.this, catalog.class);
+                    project.this.startActivity(intent);
+                }
+            }
+        });
+
+        buttonProject.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!project.this.getClass().getSimpleName().equals("ProjectActivity")) {
+                    Intent intent = new Intent(project.this, project.class);
+                    project.this.startActivity(intent);
+                }
+            }
+        });
+
+        buttonProfile.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!project.this.getClass().getSimpleName().equals("ProfileActivity")) {
+                    Intent intent = new Intent(project.this, profile.class);
+                    project.this.startActivity(intent);
+                }
+            }
+        });
+    }
+
     private void initializeViews() {
         // Находим контейнер для проектов
         projectsContainer = findViewById(R.id.projects_container);
@@ -144,10 +155,10 @@ public class project extends AppCompatActivity {
         if (intent != null && intent.hasExtra("PROJECT_NAME")) {
             String projectName = intent.getStringExtra("PROJECT_NAME");
             if (projectName != null && !projectName.isEmpty()) {
-                // Сохраняем новый проект
+                // Сохраняем новый проект для текущего пользователя
                 saveNewProject(projectName);
 
-                // Добавляем карточку (ПОСЛЕ статической карточки)
+                // Добавляем карточку
                 addProjectCard(projectName, "Только что");
 
                 // Показываем сообщение
@@ -159,8 +170,23 @@ public class project extends AppCompatActivity {
         }
     }
 
+    private String getCurrentUserPrefsName() {
+        // Получаем email текущего пользователя
+        String email = prefsHelper.getUserEmail();
+
+        // Создаем уникальное имя файла для проектов этого пользователя
+        if (!email.isEmpty()) {
+            return "projects_" + email.hashCode(); // Пример: projects_-123456789
+        }
+
+        // Для гостей или если email не установлен
+        return "projects_guest";
+    }
+
     private void saveNewProject(String projectName) {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        // Используем уникальное имя файла для текущего пользователя
+        String prefsName = getCurrentUserPrefsName();
+        SharedPreferences prefs = getSharedPreferences(prefsName, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
         // Получаем текущее количество проектов
@@ -180,13 +206,14 @@ public class project extends AppCompatActivity {
     }
 
     private void loadSavedProjects() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        Map<String, ?> allEntries = prefs.getAll();
+        // Используем уникальное имя файла для текущего пользователя
+        String prefsName = getCurrentUserPrefsName();
+        SharedPreferences prefs = getSharedPreferences(prefsName, MODE_PRIVATE);
 
         // Получаем количество проектов
         int projectCount = prefs.getInt(PROJECT_COUNT_KEY, 0);
 
-        // Загружаем все проекты (добавляем ПОСЛЕ статической карточки)
+        // Загружаем все проекты пользователя
         for (int i = 1; i <= projectCount; i++) {
             String projectKey = "project_" + i;
             String projectData = prefs.getString(projectKey, null);
@@ -196,7 +223,11 @@ public class project extends AppCompatActivity {
                 if (parts.length >= 2) {
                     String projectName = parts[0];
                     String projectTime = parts[1];
-                    addProjectCard(projectName, projectTime);
+
+                    // Пропускаем статический проект "Мой первый проект" (он уже есть в layout)
+                    if (!projectName.equals("Мой первый проект")) {
+                        addProjectCard(projectName, projectTime);
+                    }
                 }
             }
         }
@@ -263,10 +294,30 @@ public class project extends AppCompatActivity {
         Intent intent = new Intent(this, creat_project.class);
         startActivity(intent);
     }
+
     public void openCreatProject(View view) {
         Intent intent = new Intent(this, creat_project.class);
         this.startActivity(intent);
     }
+
+    // Статический метод для удаления проектов текущего пользователя
+    public static void clearCurrentUserProjects(Context context) {
+        SharedPreferencesHelper helper = new SharedPreferencesHelper(context);
+        String email = helper.getUserEmail();
+
+        // Определяем имя файла для текущего пользователя
+        String prefsName;
+        if (!email.isEmpty()) {
+            prefsName = "projects_" + email.hashCode();
+        } else {
+            prefsName = "projects_guest";
+        }
+
+        // Удаляем все проекты этого пользователя
+        SharedPreferences prefs = context.getSharedPreferences(prefsName, MODE_PRIVATE);
+        prefs.edit().clear().apply();
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);

@@ -17,6 +17,7 @@ public class profile extends AppCompatActivity {
 
     private TextView textView7; // Для имени
     private TextView textView8; // Для почты
+    private SharedPreferencesHelper prefsHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +28,10 @@ public class profile extends AppCompatActivity {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+
         });
+
+        prefsHelper = new SharedPreferencesHelper(this);
 
         // Находим TextView
         textView7 = findViewById(R.id.textView7);
@@ -48,6 +52,7 @@ public class profile extends AppCompatActivity {
             if (userEmail != null && !userEmail.isEmpty()) {
                 textView8.setText(userEmail);
                 saveToPreferences("USER_EMAIL", userEmail);
+                prefsHelper.saveUserEmail(userEmail);
             }
         }
 
@@ -55,6 +60,10 @@ public class profile extends AppCompatActivity {
         loadFromPreferences();
 
         // Навигационные кнопки
+        setupNavigationButtons();
+    }
+
+    private void setupNavigationButtons() {
         ImageView buttonGlavn = this.findViewById(com.example.ui_kit.R.id.button_glavn);
         ImageView buttonCatalog = this.findViewById(com.example.ui_kit.R.id.button_catalog);
         ImageView buttonProject = this.findViewById(com.example.ui_kit.R.id.button_project);
@@ -64,7 +73,6 @@ public class profile extends AppCompatActivity {
             public void onClick(View v) {
                 if (!profile.this.getClass().getSimpleName().equals("MainActivity")) {
                     Intent intent = new Intent(profile.this, glavn.class);
-                    // Передаем name и email в другие активности
                     intent.putExtra("USER_NAME", textView7.getText().toString());
                     intent.putExtra("USER_EMAIL", textView8.getText().toString());
                     startActivity(intent);
@@ -135,10 +143,32 @@ public class profile extends AppCompatActivity {
     }
 
     public void openRegistration(View view) {
+        // Очищаем все данные при выходе
+//        prefsHelper.clearAllData();
+//
+//        // Очищаем SharedPreferences user_data
+//        SharedPreferences userPrefs = getSharedPreferences("user_data", MODE_PRIVATE);
+//        userPrefs.edit().clear().apply();
+//
+//        // Очищаем UserProfile
+//        SharedPreferences profilePrefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+//        profilePrefs.edit().clear().apply();
+        project.clearCurrentUserProjects(this);
+
+        // Очищаем общие настройки
+        prefsHelper.clearAllData();
+
+        SharedPreferences userPrefs = getSharedPreferences("user_data", MODE_PRIVATE);
+        userPrefs.edit().clear().apply();
+
+        SharedPreferences profilePrefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        profilePrefs.edit().clear().apply();
+
+        // Переходим на регистрацию с очисткой стека активностей
         Intent intent = new Intent(profile.this, registration_login.class);
-        intent.putExtra("USER_NAME", textView7.getText().toString());
-        intent.putExtra("USER_EMAIL", textView8.getText().toString());
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        finish();
     }
 
     @Override

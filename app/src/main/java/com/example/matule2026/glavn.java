@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -72,10 +73,22 @@ public class glavn extends AppCompatActivity {
         // Находим кнопки внутри include элементов
         if (cart1Include != null) {
             buttonAddRemove1 = cart1Include.findViewById(com.example.ui_kit.R.id.buttoncart);
+
+            // Устанавливаем текст для cart1 (если нужно)
+            TextView nameProduct1 = cart1Include.findViewById(com.example.ui_kit.R.id.nameProduct);
+            if (nameProduct1 != null) {
+                nameProduct1.setText("Рубашка Воскресенье для машинного вязания");
+            }
         }
 
         if (cart2Include != null) {
             buttonAddRemove2 = cart2Include.findViewById(com.example.ui_kit.R.id.buttoncart);
+
+            // Устанавливаем текст для cart2 на "Шорты вторник для машинного вязания"
+            TextView nameProduct2 = cart2Include.findViewById(com.example.ui_kit.R.id.nameProduct);
+            if (nameProduct2 != null) {
+                nameProduct2.setText("Шорты вторник для машинного вязания");
+            }
         }
 
         // Настраиваем обработчики кликов для кнопок
