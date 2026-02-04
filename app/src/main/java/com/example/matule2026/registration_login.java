@@ -87,10 +87,10 @@ public class registration_login extends AppCompatActivity {
 
                             Intent intent = new Intent(registration_login.this, profile.class);
                             intent.putExtra("email", email);
-                            registration_login.this.startActivity(intent);
-                            registration_login.this.finish();
+                            startActivity(intent);
+                            finish();
                         } else {
-                            registration_login.this.showErrorMessage(email, password);
+                            showErrorMessage(email, password);
                         }
                     }
                 });

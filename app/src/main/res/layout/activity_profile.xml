@@ -107,7 +107,8 @@
             android:text="Политика конфиденциальности"
             android:textColor="@color/caption"
             android:layout_marginTop="100dp"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:onClick="openPrivacyPolicy"/>
 
         <TextView
             android:id="@+id/textView10"

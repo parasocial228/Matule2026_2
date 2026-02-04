@@ -2,16 +2,25 @@ package com.example.matule2026;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 public class profile extends AppCompatActivity {
 
@@ -177,5 +186,43 @@ public class profile extends AppCompatActivity {
         // Сохраняем текущие значения
         saveToPreferences("USER_NAME", textView7.getText().toString());
         saveToPreferences("USER_EMAIL", textView8.getText().toString());
+    }
+
+    public void openPrivacyPolicy(View view) {
+        //мб убрать
+
+//        // Создаем WebView
+//        WebView webView = new WebView(this);
+//        webView.getSettings().setJavaScriptEnabled(true);
+//        webView.getSettings().setAllowFileAccess(true);
+//
+//        // Копируем PDF из raw в кэш
+//        try {
+//            InputStream inputStream = getResources().openRawResource(R.raw.privacy_policy);
+//            File tempFile = new File(getCacheDir(), "privacy_policy.pdf");
+//            FileOutputStream outputStream = new FileOutputStream(tempFile);
+//
+//            byte[] buffer = new byte[1024];
+//            int length;
+//            while ((length = inputStream.read(buffer)) > 0) {
+//                outputStream.write(buffer, 0, length);
+//            }
+//            outputStream.close();
+//            inputStream.close();
+//
+//            // Загружаем в WebView
+//            webView.loadUrl("file://" + tempFile.getAbsolutePath());
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            webView.loadData("<h1>Файл не найден</h1>", "text/html", "UTF-8");
+//        }
+//
+//        // Показываем в диалоге
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setView(webView)
+//                .setTitle("Политика конфиденциальности")
+//                .setPositiveButton("Закрыть", null)
+//                .show();
     }
 }

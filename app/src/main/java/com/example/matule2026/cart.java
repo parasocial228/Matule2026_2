@@ -388,68 +388,6 @@ public class cart extends AppCompatActivity {
         dimBackground.setBackgroundColor(Color.argb(180, 0, 0, 0));
         dimBackground.setId(View.generateViewId());
 
-        // Создаем уведомление
-        LinearLayout notificationView = new LinearLayout(this);
-        notificationView.setOrientation(LinearLayout.VERTICAL);
-        notificationView.setGravity(Gravity.CENTER);
-
-        // Создаем фон с закругленными углами
-        GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.WHITE);
-        background.setCornerRadius(dpToPx(12));
-        notificationView.setBackground(background);
-
-        notificationView.setPadding(dpToPx(24), dpToPx(32), dpToPx(24), dpToPx(32));
-
-        // Текст уведомления
-        TextView notificationText = new TextView(this);
-        notificationText.setText("Заказ успешно оформлен");
-        notificationText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        notificationText.setTextColor(Color.BLACK);
-        notificationText.setTypeface(notificationText.getTypeface(), Typeface.BOLD);
-        notificationText.setGravity(Gravity.CENTER);
-
-        // Кнопка закрытия (опционально)
-        Button closeButton = new Button(this);
-        closeButton.setText("OK");
-        closeButton.setBackgroundColor(getResources().getColor(com.example.ui_kit.R.color.accent));
-        closeButton.setTextColor(Color.WHITE);
-        closeButton.setOnClickListener(v -> {
-            // Анимация исчезновения
-            notificationView.animate()
-                    .scaleX(0.8f)
-                    .scaleY(0.8f)
-                    .alpha(0f)
-                    .setDuration(200)
-                    .setInterpolator(new AccelerateInterpolator())
-                    .withEndAction(() -> {
-                        ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
-                        ViewGroup rootContainer = (ViewGroup) notificationView.getParent();
-                        if (rootContainer != null) {
-                            decorView.removeView(rootContainer);
-                        }
-                        navigateToGlavn();
-                    })
-                    .start();
-        });
-
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        buttonParams.topMargin = dpToPx(16);
-        closeButton.setLayoutParams(buttonParams);
-
-        notificationView.addView(notificationText);
-        notificationView.addView(closeButton);
-
-        FrameLayout.LayoutParams notificationParams = new FrameLayout.LayoutParams(
-                dpToPx(280),
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        notificationParams.gravity = Gravity.CENTER;
-        notificationView.setLayoutParams(notificationParams);
-
         // Создаем корневой контейнер
         FrameLayout rootContainer = new FrameLayout(this);
         rootContainer.setLayoutParams(new FrameLayout.LayoutParams(
@@ -458,13 +396,28 @@ public class cart extends AppCompatActivity {
         ));
         rootContainer.setId(View.generateViewId());
 
-        // Добавляем элементы
+        // Добавляем затемненный фон
         rootContainer.addView(dimBackground);
+
+        // Инфлейтим layout уведомления из ресурсов
+        View notificationView = getLayoutInflater().inflate(R.layout.notification_success, null);
+        notificationView.setId(View.generateViewId());
+
+        // Настраиваем LayoutParams для уведомления
+        FrameLayout.LayoutParams notificationParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        notificationParams.gravity = Gravity.CENTER;
+        notificationView.setLayoutParams(notificationParams);
+
+        // Добавляем уведомление в контейнер
         rootContainer.addView(notificationView);
 
-        // Добавляем в основную разметку
+        // Добавляем корневой контейнер в основную разметку
         ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
         decorView.addView(rootContainer);
+
 
         // Анимация появления
         notificationView.setScaleX(0.8f);
@@ -482,25 +435,31 @@ public class cart extends AppCompatActivity {
         // Автоматическое закрытие через 5 секунд
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (notificationView.getParent() != null) {
-                notificationView.animate()
-                        .scaleX(0.8f)
-                        .scaleY(0.8f)
-                        .alpha(0f)
-                        .setDuration(200)
-                        .setInterpolator(new AccelerateInterpolator())
-                        .withEndAction(() -> {
-                            if (notificationView.getParent() != null) {
-                                ViewGroup parent = (ViewGroup) notificationView.getParent();
-                                ViewGroup grandParent = (ViewGroup) parent.getParent();
-                                if (grandParent != null) {
-                                    grandParent.removeView(parent);
-                                }
-                            }
-                            navigateToGlavn();
-                        })
-                        .start();
+                removeNotification(rootContainer);
+                navigateToGlavn();
             }
         }, 5000);
+    }
+
+    private void removeNotification(FrameLayout rootContainer) {
+        // Анимация исчезновения
+        View notificationView = rootContainer.getChildAt(1); // Уведомление - второй элемент
+        if (notificationView != null) {
+            notificationView.animate()
+                    .scaleX(0.8f)
+                    .scaleY(0.8f)
+                    .alpha(0f)
+                    .setDuration(200)
+                    .setInterpolator(new AccelerateInterpolator())
+                    .withEndAction(() -> {
+                        ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
+                        decorView.removeView(rootContainer);
+                    })
+                    .start();
+        } else {
+            ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
+            decorView.removeView(rootContainer);
+        }
     }
 
     private void navigateToGlavn() {
