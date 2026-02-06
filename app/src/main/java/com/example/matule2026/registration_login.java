@@ -45,261 +45,149 @@ public class registration_login extends AppCompatActivity {
         });
         prefsHelper = new SharedPreferencesHelper(this);
 
-        this.initViews();
-        this.setupPasswordVisibilityToggle();
-        this.setupTextWatchers();
-        this.updateButtonState();
+        initViews();
+        setupPasswordVisibilityToggle();
+        setupTextWatchers();
+        updateButtonState();
     }
 
     private void initViews() {
-        // Email поле из текущего модуля
-        this.emailEditText = (EditText) this.findViewById(R.id.editTextTextEmailAddress);
+        emailEditText = findViewById(R.id.editTextTextEmailAddress);
+        loginButton = findViewById(com.example.ui_kit.R.id.big_button);
+        passwordEditText = findViewById(com.example.ui_kit.R.id.editTextTextPassword);
+        passwordVisibilityIcon = findViewById(com.example.ui_kit.R.id.imageView6);
 
-        // Находим include с кнопкой и ищем кнопку внутри него
-        View includeButton = this.findViewById(R.id.includeButton);
-        if (includeButton != null) {
-            this.loginButton = (Button) includeButton.findViewById(com.example.ui_kit.R.id.big_button);
-            if (this.loginButton != null) {
-                this.loginButton.setText("Далее");
-                // Кнопка всегда активна для обработки кликов
-                this.loginButton.setEnabled(true);
-                this.loginButton.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        String email = registration_login.this.emailEditText.getText().toString().trim();
-                        String password = registration_login.this.passwordEditText.getText().toString().trim();
-
-                        boolean emailValid = registration_login.this.isValidEmail(email);
-                        boolean passwordValid = !TextUtils.isEmpty(password);
-
-                        if (emailValid && passwordValid) {
-                            // Сохраняем данные в SharedPreferencesHelper
-                            prefsHelper.setFirstLaunchComplete();
-                            prefsHelper.setUserRegistered(true);
-                            prefsHelper.setRegistrationSkipped(false);
-                            prefsHelper.saveUserEmail(email);
-
-                            // Сохраняем в user_data для обратной совместимости
-                            SharedPreferences userPrefs = getSharedPreferences("user_data", MODE_PRIVATE);
-                            SharedPreferences.Editor editor = userPrefs.edit();
-                            editor.putString("user_email", email);
-                            editor.putString("user_password", password);
-                            editor.apply();
-
-                            Intent intent = new Intent(registration_login.this, profile.class);
-                            intent.putExtra("email", email);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            showErrorMessage(email, password);
-                        }
-                    }
-                });
-            }
-        }
-
-        // Для пароля: находим LinearLayout с input_password
-        View rootView = findViewById(android.R.id.content);
-        View passwordContainer = findPasswordContainer(rootView);
-
-        if (passwordContainer != null) {
-            this.passwordEditText = (EditText) passwordContainer.findViewById(com.example.ui_kit.R.id.editTextTextPassword);
-            this.passwordVisibilityIcon = (ImageView) passwordContainer.findViewById(com.example.ui_kit.R.id.imageView6);
-
-            // По умолчанию скрываем иконку видимости
-            if (this.passwordVisibilityIcon != null) {
-                this.passwordVisibilityIcon.setVisibility(View.GONE);
-            }
-
-            if (this.passwordEditText != null) {
-                // Обработчик фокуса на EditText для пароля
-                this.passwordEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View v, boolean hasFocus) {
-                        if (passwordVisibilityIcon != null) {
-                            if (hasFocus) {
-                                passwordVisibilityIcon.setVisibility(View.VISIBLE);
-                            } else {
-                                passwordVisibilityIcon.setVisibility(View.GONE);
-                            }
-                        }
-                    }
-                });
-            }
+        if (loginButton != null) {
+            loginButton.setText("Далее");
+            loginButton.setOnClickListener(v -> handleLogin());
         }
     }
 
-    // Метод для поиска контейнера с паролем в иерархии вью
-    private View findPasswordContainer(View view) {
-        if (view instanceof ViewGroup) {
-            ViewGroup viewGroup = (ViewGroup) view;
+    private void handleLogin() {
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
 
-            // Проверяем, является ли текущий вью LinearLayout с нужным background
-            if (view instanceof android.widget.LinearLayout) {
-                android.widget.LinearLayout linearLayout = (android.widget.LinearLayout) view;
-                // Проверяем наличие EditText и ImageView внутри
-                EditText editText = linearLayout.findViewById(com.example.ui_kit.R.id.editTextTextPassword);
-                ImageView imageView = linearLayout.findViewById(com.example.ui_kit.R.id.imageView6);
-
-                if (editText != null && imageView != null) {
-                    return linearLayout;
-                }
-            }
-
-            // Рекурсивно проверяем дочерние элементы
-            for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                View found = findPasswordContainer(viewGroup.getChildAt(i));
-                if (found != null) {
-                    return found;
-                }
-            }
+        if (isValidEmail(email) && !TextUtils.isEmpty(password)) {
+            saveUserData(email, password);
+            startActivity(new Intent(this, profile.class));
+            finish();
+        } else {
+            showErrorMessage(email, password);
         }
-        return null;
+    }
+
+    private void saveUserData(String email, String password) {
+        prefsHelper.setFirstLaunchComplete();
+        prefsHelper.setUserRegistered(true);
+        prefsHelper.setRegistrationSkipped(false);
+        prefsHelper.saveUserEmail(email);
+
+        SharedPreferences userPrefs = getSharedPreferences("user_data", MODE_PRIVATE);
+        SharedPreferences.Editor editor = userPrefs.edit();
+        editor.putString("user_email", email);
+        editor.putString("user_password", password);
+        editor.apply();
     }
 
     private void setupPasswordVisibilityToggle() {
-        if (this.passwordVisibilityIcon != null && this.passwordEditText != null) {
-            this.passwordVisibilityIcon.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    registration_login.this.togglePasswordVisibility();
-                }
-            });
+        if (passwordVisibilityIcon != null && passwordEditText != null) {
+            passwordVisibilityIcon.setOnClickListener(v -> togglePasswordVisibility());
         }
     }
 
     private void togglePasswordVisibility() {
-        if (this.passwordEditText == null || this.passwordVisibilityIcon == null) return;
-
-        if (this.isPasswordVisible) {
-            this.passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
-            this.passwordVisibilityIcon.setImageResource(com.example.ui_kit.R.drawable.eye_close);
-            this.isPasswordVisible = false;
+        if (isPasswordVisible) {
+            passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            passwordVisibilityIcon.setImageResource(com.example.ui_kit.R.drawable.eye_close);
         } else {
-            this.passwordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-            this.passwordVisibilityIcon.setImageResource(com.example.ui_kit.R.drawable.eye_open);
-            this.isPasswordVisible = true;
+            passwordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            passwordVisibilityIcon.setImageResource(com.example.ui_kit.R.drawable.eye_open);
         }
-
-        this.passwordEditText.setSelection(this.passwordEditText.getText().length());
+        isPasswordVisible = !isPasswordVisible;
+        passwordEditText.setSelection(passwordEditText.getText().length());
     }
 
     private void setupTextWatchers() {
         TextWatcher textWatcher = new TextWatcher() {
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                registration_login.this.updateButtonState();
+                updateButtonState();
             }
-
-            public void afterTextChanged(Editable s) {
-            }
+            public void afterTextChanged(Editable s) {}
         };
 
-        if (this.emailEditText != null) {
-            this.emailEditText.addTextChangedListener(textWatcher);
+        if (emailEditText != null) {
+            emailEditText.addTextChangedListener(textWatcher);
         }
 
-        if (this.passwordEditText != null) {
-            this.passwordEditText.addTextChangedListener(textWatcher);
+        if (passwordEditText != null) {
+            passwordEditText.addTextChangedListener(textWatcher);
         }
     }
 
     private void updateButtonState() {
-        if (this.emailEditText == null || this.passwordEditText == null || this.loginButton == null) {
+        if (emailEditText == null || passwordEditText == null || loginButton == null) {
             return;
         }
 
-        String email = this.emailEditText.getText().toString().trim();
-        String password = this.passwordEditText.getText().toString().trim();
-        boolean emailValid = this.isValidEmail(email);
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
+        boolean emailValid = isValidEmail(email);
         boolean passwordValid = !TextUtils.isEmpty(password);
-        this.isFormValid = emailValid && passwordValid;
+        isFormValid = emailValid && passwordValid;
 
-        // Меняем только внешний вид кнопки, но оставляем ее активной
-        if (this.isFormValid) {
-            this.loginButton.setBackgroundTintList(ColorStateList.valueOf(
+        if (isFormValid) {
+            loginButton.setBackgroundTintList(ColorStateList.valueOf(
                     ContextCompat.getColor(this, com.example.ui_kit.R.color.accent)));
         } else {
-            this.loginButton.setBackgroundTintList(ColorStateList.valueOf(
+            loginButton.setBackgroundTintList(ColorStateList.valueOf(
                     ContextCompat.getColor(this, com.example.ui_kit.R.color.accent_inactive)));
         }
 
-        this.loginButton.setAlpha(this.isFormValid ? 1.0F : 0.7F);
-        // Кнопка всегда остается enabled, чтобы обрабатывать клики
-        this.loginButton.setEnabled(true);
+        loginButton.setAlpha(isFormValid ? 1.0F : 0.7F);
+        loginButton.setEnabled(true); // Кнопка всегда кликабельна
     }
 
     private boolean isValidEmail(String email) {
-        if (TextUtils.isEmpty(email)) {
-            return false;
-        }
-
-        // Паттерн: только маленькие буквы и цифры для имени и доменного имени
+        if (TextUtils.isEmpty(email)) return false;
         String emailPattern = "^[a-z0-9]+@[a-z0-9]+\\.[a-z]{2,}$";
-
-        // Проверяем соответствие паттерну
-        if (!email.matches(emailPattern)) {
-            return false;
-        }
-
-        // Дополнительная проверка на .ru окончание
-        return email.toLowerCase().endsWith(".ru");
+        return email.matches(emailPattern) && email.toLowerCase().endsWith(".ru");
     }
 
     private void showErrorMessage(String email, String password) {
-        // Сначала скрываем предыдущее сообщение, если оно показывается
         if (errorPopup != null && errorPopup.isShowing()) {
             errorPopup.dismiss();
         }
 
-        // Загружаем layout для сообщения об ошибке
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater = LayoutInflater.from(this);
         View popupView = inflater.inflate(R.layout.message_error, null);
 
-        // Устанавливаем текст ошибки
         android.widget.TextView errorTextView = popupView.findViewById(R.id.textView22);
-        String errorMessage = getErrorMessage(email, password);
-        errorTextView.setText(errorMessage);
+        errorTextView.setText(getErrorMessage(email, password));
 
-        // Настраиваем PopupWindow
         errorPopup = new PopupWindow(
                 popupView,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
                 true
         );
 
-        // Настраиваем фон
         errorPopup.setBackgroundDrawable(getResources().getDrawable(android.R.color.transparent));
         errorPopup.setOutsideTouchable(false);
 
-        // Находим кнопку закрытия и настраиваем обработчик
         ImageView dismissButton = popupView.findViewById(R.id.imageView);
-        dismissButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (errorPopup != null && errorPopup.isShowing()) {
-                    errorPopup.dismiss();
-                }
+        dismissButton.setOnClickListener(v -> {
+            if (errorPopup != null && errorPopup.isShowing()) {
+                errorPopup.dismiss();
             }
         });
 
-        // Показываем сообщение об ошибке по центру экрана
         View mainView = findViewById(R.id.main);
-        errorPopup.showAtLocation(
-                mainView,
-                android.view.Gravity.CENTER,
-                0,
-                0
-        );
+        errorPopup.showAtLocation(mainView, android.view.Gravity.CENTER, 0, 0);
 
-        // Автоматически скрываем через 5 секунд
-        mainView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (errorPopup != null && errorPopup.isShowing()) {
-                    errorPopup.dismiss();
-                }
+        mainView.postDelayed(() -> {
+            if (errorPopup != null && errorPopup.isShowing()) {
+                errorPopup.dismiss();
             }
         }, 5000);
     }
@@ -312,15 +200,12 @@ public class registration_login extends AppCompatActivity {
         } else if (TextUtils.isEmpty(password)) {
             return "Введите пароль";
         } else if (!isValidEmail(email)) {
-            // Более детальная проверка для email
             if (!email.contains("@")) {
                 return "Email должен содержать @";
             } else if (!email.toLowerCase().endsWith(".ru")) {
                 return "Email должен заканчиваться на .ru";
-            } else if (!email.matches("^[a-z0-9]+@[a-z0-9]+\\.[a-z]{2,}$")) {
-                return "Email должен содержать только строчные буквы и цифры";
             } else {
-                return "Некорректный email";
+                return "Email должен содержать только строчные буквы и цифры";
             }
         } else {
             return "Ошибка при заполнении формы";
@@ -330,10 +215,8 @@ public class registration_login extends AppCompatActivity {
     public void openCreatProfile(View view) {
         prefsHelper.setFirstLaunchComplete();
         prefsHelper.setRegistrationSkipped(false);
-
-        Intent i = new Intent(this, profile_create.class);
-        this.startActivity(i);
-        this.finish();
+        startActivity(new Intent(this, profile_create.class));
+        finish();
     }
 
     public void skip(View view) {
@@ -341,10 +224,8 @@ public class registration_login extends AppCompatActivity {
         prefsHelper.setUserRegistered(true);
         prefsHelper.setRegistrationSkipped(true);
         prefsHelper.setHasProfile(true);
-
-        Intent i = new Intent(this, profile.class);
-        this.startActivity(i);
-        this.finish();
+        startActivity(new Intent(this, profile.class));
+        finish();
     }
 
     @Override
